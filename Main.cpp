@@ -6,15 +6,15 @@ using namespace std;
 class MusicPlayer
 {
 private:
-    class Song
+    class Song //Linked List Class
     {
     public:
-        string songName;
-        string artist;
-        Song* prev = nullptr;
-        Song* next = nullptr;
+        string songName; // Name of Song
+        string artist;   //Artist of song
+        Song* prev = NULL;
+        Song* next = NULL;
 
-        Song(string name, string artist)
+        Song(string name, string artist) //constructor
         {
             songName = name;
             this->artist = artist;
@@ -23,30 +23,47 @@ private:
 
     Song* head = new Song("", "");
     Song* tail = new Song("", "");
-    int capacity;
-    unordered_map<string, Song*> songMap;
+    int capacity;                         //Song capacity of playlist
+    unordered_map<string, Song*> songMap; //Mapping of song and Node
 
+private:
+    void attach(Song* song)  //Add song to Playlist
+    {
+        song->next = head->next;
+        head->next->prev = song;
+        head->next = song;
+        song->prev = head;
+    }
+
+    void detach(Song* song) // remove song from playlist
+    {
+        song->prev->next = song->next;
+        song->next->prev = song->prev;
+    }
 public:
-    MusicPlayer(int cap)
+    MusicPlayer(int cap) // constructor
     {
         capacity = cap;
         head->next = tail;
         tail->prev = head;
     }
 
-    string getSong(string songName)
+    void getSong(string songName)  //search song in the playlist
     {
         if (songMap.find(songName) != songMap.end())
         {
             Song* current = songMap[songName];
             detach(current);
             attach(current);
-            return current->artist;
+            cout<<current->songName<<" Song is present"<<endl;
+            cout<<"Artist: "<<current->artist<< endl;
         }
-        return "Song not found.";
+        else{
+            cout<<"Song not found !!";
+        }
     }
 
-    void addSong(string songName, string artist)
+    void addSong(string songName, string artist) // Add song to the playlist
     {
         if (songMap.find(songName) != songMap.end())
         {
@@ -58,42 +75,31 @@ public:
         {
             if (songMap.size() >= capacity)
             {
-                Song* evictSong = tail->prev;
-                detach(evictSong);
-                songMap.erase(evictSong->songName);
-                delete evictSong;
+                Song* temp = tail->prev;
+                detach(temp);
+                songMap.erase(temp->songName);
+                delete temp;
             }
             Song* newSong = new Song(songName, artist);
             songMap[songName] = newSong;
             attach(newSong);
         }
     }
-
-    void printRecentSongs()
+    void printRecentSong(){     //print recently played song
+        cout<<"songName : "<<head->next->songName<<" , Artist : "<<head->next->artist<<endl;
+    }
+    void printAllSongs()        //print all songs of playlist
     {
         Song* current = head->next;
-        cout << "Recently listened songs:" << endl;
+        cout << "All songs: " << endl;
         while (current != tail)
         {
-            cout << "Song: " << current->songName << ", Artist: " << current->artist << endl;
+            cout << "Song: " << current->songName << " , Artist: " << current->artist << endl;
             current = current->next;
         }
     }
 
-private:
-    void attach(Song* song)
-    {
-        song->next = head->next;
-        head->next->prev = song;
-        head->next = song;
-        song->prev = head;
-    }
 
-    void detach(Song* song)
-    {
-        song->prev->next = song->next;
-        song->next->prev = song->prev;
-    }
 };
 
 int main()
@@ -103,52 +109,52 @@ int main()
     cin >> capacity;
 
     MusicPlayer player(capacity);
-
-    cout << "Enter the number of actions: ";
-    int numActions;
-    cin >> numActions;
-
-    while (numActions--)
+    
+    int action = 1;
+    while(action)
     {
-        cout << "Choose action:" << endl;
-        cout << "1. ADD" << endl;
-        cout << "2. GET" << endl;
-        cout << "3. RECENT" << endl;
-        cout << "4. PRINT" << endl;
-
         int choice;
-        cin >> choice;
 
-        if (choice == 1)
+        cout << "\nChoose action:" << endl;
+        cout << "1. Add Song" << endl;
+        cout << "2. Get Song" << endl;
+        cout << "3. Recently played" << endl;
+        cout << "4. Print All" << endl;
+
+        string songName, artist;
+        cin >> choice;
+        switch (choice)
         {
-            string songName, artist;
+        case 1:
             cout << "Enter song name: ";
             cin >> songName;
             cout << "Enter artist name: ";
             cin >> artist;
             player.addSong(songName, artist);
             cout << "Song added to playlist." << endl;
-        }
-        else if (choice == 2)
-        {
-            string songName;
+            break;
+
+        case 2:
             cout << "Enter song name: ";
             cin >> songName;
-            string artist = player.getSong(songName);
-            cout << "Artist: " << artist << endl;
-        }
-        else if (choice == 3)
-        {
-            player.printRecentSongs();
-        }
-        else if (choice == 4)
-        {
-            player.printRecentSongs();
-        }
-        else
-        {
+            player.getSong(songName);
+            break;
+
+        case 3:
+            player.printRecentSong();
+            break;
+
+        case 4:
+            player.printAllSongs();
+            break;
+        
+        default:
             cout << "Invalid choice." << endl;
+            break;
         }
+        
+        cout<<"\nDo you want to continue \n 0 - Exit \n 1 - Continue"<<endl;
+        cin>>action;
     }
 
     return 0;
